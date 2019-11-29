@@ -10,12 +10,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using SimpleBotCore.Logic;
+using SimpleBotCore.Data;
 
 namespace SimpleBotCore
 {
     public class Startup
     {
-
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -27,7 +27,7 @@ namespace SimpleBotCore
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<SimpleBotUser>();
-            services.AddSingleton(new MongoClient("mongodb://localhost:27017"));
+            services.AddSingleton(new MongoDataAccess(Configuration["ConnectionStrings:DefaultConnection"]));
             services.AddMvc();
         }
 

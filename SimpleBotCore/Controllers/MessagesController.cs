@@ -7,6 +7,7 @@ using Microsoft.Bot.Connector;
 using Microsoft.Bot.Schema;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using SimpleBotCore.Data;
 using SimpleBotCore.Logic;
 
 namespace SimpleBotCore.Controllers
@@ -15,12 +16,12 @@ namespace SimpleBotCore.Controllers
     public class MessagesController : Controller
     {
         SimpleBotUser _bot = new SimpleBotUser();
-        MongoClient mongoClient;
+        MongoDataAccess _mongoConn;
 
-        public MessagesController(SimpleBotUser bot, MongoClient mongoClient)
+        public MessagesController(SimpleBotUser bot, MongoDataAccess mongoConn)
         {
             this._bot = bot;
-            this.mongoClient = mongoClient;
+            this._mongoConn = mongoConn;
         }
 
         [HttpGet]
@@ -52,7 +53,7 @@ namespace SimpleBotCore.Controllers
             var message = new SimpleMessage(userFromId, userFromName, text);
 
             string response = _bot.Reply(message);
-
+            SaveLogMongoDB(message);
             await ReplyUserAsync(activity, response);
         }
 
@@ -62,15 +63,12 @@ namespace SimpleBotCore.Controllers
             var connector = new ConnectorClient(new Uri(message.ServiceUrl));
             var reply = message.CreateReply(text);
 
-            var mc = mongoClient.GetDatabase("net16");
-            var col = mc.GetCollection<BsonDocument>("logmessages");
-            var doc = new BsonDocument()
-            {
-                { "mensagem",  text}
-            };
-            col.InsertOne(doc);
-
             await connector.Conversations.ReplyToActivityAsync(reply);
+        }
+        
+        private void SaveLogMongoDB(SimpleMessage message)
+        {
+            _mongoConn.InserirBase("db_bot", "tb_log_mensagens", message);
         }
     }
 }
