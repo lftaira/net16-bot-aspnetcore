@@ -37,6 +37,7 @@ namespace SimpleBotCore.Controllers
             if (activity != null && activity.Type == ActivityTypes.Message)
             {
                 await HandleActivityAsync(activity);
+                SaveLogMongoDB(new SimpleMessage(activity.Id, activity.From.Name, activity.Text));
             }
 
             // HTTP 202
@@ -53,7 +54,7 @@ namespace SimpleBotCore.Controllers
             var message = new SimpleMessage(userFromId, userFromName, text);
 
             string response = _bot.Reply(message);
-            SaveLogMongoDB(message);
+            
             await ReplyUserAsync(activity, response);
         }
 

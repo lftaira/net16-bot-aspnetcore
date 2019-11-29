@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace SimpleBotCore.Data
 {
-    public class MongoDataAccess
+    public class MongoDataAccess : MongoClient
     {
         IMongoClient _mongoClient;
 
         public MongoDataAccess(string connString)
+            : base(connString)
         {
-            this._mongoClient = new MongoClient(connString);
         }
 
         public void InserirBase(String dbName, String Table, SimpleMessage mensagem)
