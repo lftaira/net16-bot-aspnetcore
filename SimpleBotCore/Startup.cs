@@ -27,7 +27,7 @@ namespace SimpleBotCore
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<SimpleBotUser>();
-            services.AddSingleton(new MongoDataAccess(Configuration["ConnectionStrings:DefaultConnection"]));
+            services.AddSingleton(new MessageRepository(Configuration["ConnectionStrings:MongoConnection"]));
             services.AddMvc();
         }
 

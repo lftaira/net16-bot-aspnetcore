@@ -16,12 +16,12 @@ namespace SimpleBotCore.Controllers
     public class MessagesController : Controller
     {
         private SimpleBotUser _bot = new SimpleBotUser();
-        private MongoDataAccess _mongoConn;
+        private MessageRepository _messageRepository;
 
-        public MessagesController(SimpleBotUser bot, MongoDataAccess mongoConn)
+        public MessagesController(SimpleBotUser bot, MessageRepository mongoConn)
         {
             this._bot = bot;
-            this._mongoConn = mongoConn;
+            this._messageRepository = mongoConn;
         }
 
         [HttpGet]
@@ -37,7 +37,6 @@ namespace SimpleBotCore.Controllers
             if (activity != null && activity.Type == ActivityTypes.Message)
             {
                 await HandleActivityAsync(activity);
-                SalvarLogMongo(new SimpleMessage(activity.Id, activity.From.Name, activity.Text));
             }
 
             // HTTP 202
@@ -47,14 +46,10 @@ namespace SimpleBotCore.Controllers
         // Estabelece comunicacao entre o usuario e o SimpleBotUser
         async Task HandleActivityAsync(Activity activity)
         {
-            string text = activity.Text;
-            string userFromId = activity.From.Id;
-            string userFromName = activity.From.Name;
+            var message = new SimpleMessage(activity.From.Id, activity.From.Name, activity.Text);
+            SalvarMensagemBase(message);
+            string response = _bot.RespostaComQtde(message, ProcurarMensagens(message));
 
-            var message = new SimpleMessage(userFromId, userFromName, text);
-
-            string response = _bot.Reply(message);
-            
             await ReplyUserAsync(activity, response);
         }
 
@@ -62,14 +57,19 @@ namespace SimpleBotCore.Controllers
         async Task ReplyUserAsync(Activity message, string text)
         {
             var connector = new ConnectorClient(new Uri(message.ServiceUrl));
+
             var reply = message.CreateReply(text);
-            
             await connector.Conversations.ReplyToActivityAsync(reply);
         }
-        
-        private void SalvarLogMongo(SimpleMessage message)
+
+        private void SalvarMensagemBase(SimpleMessage message)
         {
-            _mongoConn.InserirBase("db_bot", "tb_log_mensagens", message);
+            _messageRepository.InserirBase(message);
+        }
+
+        private int ProcurarMensagens(SimpleMessage message)
+        {
+            return _messageRepository.ObterQuantidadeDeMensagemPorUser(message);
         }
     }
 }
