@@ -15,8 +15,8 @@ namespace SimpleBotCore.Controllers
     [Route("api/[controller]")]
     public class MessagesController : Controller
     {
-        SimpleBotUser _bot = new SimpleBotUser();
-        MongoDataAccess _mongoConn;
+        private SimpleBotUser _bot = new SimpleBotUser();
+        private MongoDataAccess _mongoConn;
 
         public MessagesController(SimpleBotUser bot, MongoDataAccess mongoConn)
         {
@@ -37,7 +37,7 @@ namespace SimpleBotCore.Controllers
             if (activity != null && activity.Type == ActivityTypes.Message)
             {
                 await HandleActivityAsync(activity);
-                SaveLogMongoDB(new SimpleMessage(activity.Id, activity.From.Name, activity.Text));
+                SalvarLogMongo(new SimpleMessage(activity.Id, activity.From.Name, activity.Text));
             }
 
             // HTTP 202
@@ -63,11 +63,11 @@ namespace SimpleBotCore.Controllers
         {
             var connector = new ConnectorClient(new Uri(message.ServiceUrl));
             var reply = message.CreateReply(text);
-
+            
             await connector.Conversations.ReplyToActivityAsync(reply);
         }
         
-        private void SaveLogMongoDB(SimpleMessage message)
+        private void SalvarLogMongo(SimpleMessage message)
         {
             _mongoConn.InserirBase("db_bot", "tb_log_mensagens", message);
         }

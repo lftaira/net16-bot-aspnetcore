@@ -11,23 +11,19 @@ namespace SimpleBotCore.Data
 {
     public class MongoDataAccess : MongoClient
     {
-        IMongoClient _mongoClient;
-
         public MongoDataAccess(string connString)
             : base(connString)
         {
         }
 
-        public void InserirBase(String dbName, String Table, SimpleMessage mensagem)
+        public void InserirBase(String dbName, String table, SimpleMessage mensagem)
         {
-            var bDocument = new BsonDocument()
+            GetDatabase(dbName).GetCollection<BsonDocument>(table).InsertOne(new BsonDocument()
             {
                 {"ID_mensagem", mensagem.Id },
                 {"Nome", mensagem.User },
                 {"Mesangem", mensagem.Text }
-            };
-
-            _mongoClient.GetDatabase(dbName).GetCollection<BsonDocument>(Table).InsertOne(bDocument);
+            });
         }
     }
 }
